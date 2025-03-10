@@ -15,26 +15,24 @@ function AppContent() {
   // Enkel ruting basert på hash
   useEffect(() => {
     const handleHashChange = () => {
-      // Fjern base path fra URL hvis den er der
-      const url = window.location.href
-      const hashIndex = url.indexOf('#')
-      if (hashIndex === -1) {
-        setCurrentPage('home')
-        return
+      // Få hash fra URL
+      const hash = window.location.hash.replace('#', '');
+      
+      // Håndter forskjellige ruter
+      if (hash === 'pricing') {
+        setCurrentPage('pricing');
+      } else if (hash === 'contact') {
+        setCurrentPage('contact');
+      } else if (hash === 'login') {
+        setCurrentPage('login');
+      } else if (hash === 'register') {
+        setCurrentPage('register');
+      } else {
+        setCurrentPage('home');
       }
       
-      const hash = url.substring(hashIndex + 1)
-      if (hash === 'pricing') {
-        setCurrentPage('pricing')
-      } else if (hash === 'contact') {
-        setCurrentPage('contact')
-      } else if (hash === 'login') {
-        setCurrentPage('login')
-      } else if (hash === 'register') {
-        setCurrentPage('register')
-      } else {
-        setCurrentPage('home')
-      }
+      // Scroll til toppen av siden
+      window.scrollTo(0, 0);
     }
 
     // Sjekk hash ved oppstart
@@ -93,8 +91,8 @@ function AppContent() {
               </>
             ) : (
               <>
-                <a href="#login" className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">Logg inn</a>
-                <a href="#register" className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">Registrer deg</a>
+                <a href="#login" onClick={(e) => { e.preventDefault(); window.location.hash = 'login'; }} className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">Logg inn</a>
+                <a href="#register" onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }} className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">Registrer deg</a>
               </>
             )}
           </div>
@@ -120,8 +118,8 @@ function AppContent() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 bg-white rounded-lg shadow-lg p-4">
             <a href="#features" className="block py-2 text-gray-600 hover:text-primary">Funksjoner</a>
-            <a href="#pricing" className="block py-2 text-gray-600 hover:text-primary">Priser</a>
-            <a href="#contact" className="block py-2 text-gray-600 hover:text-primary">Kontakt</a>
+            <a href="#pricing" onClick={(e) => { e.preventDefault(); window.location.hash = 'pricing'; setIsMenuOpen(false); }} className="block py-2 text-gray-600 hover:text-primary">Priser</a>
+            <a href="#contact" onClick={(e) => { e.preventDefault(); window.location.hash = 'contact'; setIsMenuOpen(false); }} className="block py-2 text-gray-600 hover:text-primary">Kontakt</a>
             
             {user ? (
               <>
@@ -135,8 +133,8 @@ function AppContent() {
               </>
             ) : (
               <>
-                <a href="#login" className="block py-2 text-primary">Logg inn</a>
-                <a href="#register" className="block py-2 mt-2 bg-primary text-white rounded-md px-4">Registrer deg</a>
+                <a href="#login" onClick={(e) => { e.preventDefault(); window.location.hash = 'login'; setIsMenuOpen(false); }} className="block py-2 text-primary">Logg inn</a>
+                <a href="#register" onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; setIsMenuOpen(false); }} className="block py-2 mt-2 bg-primary text-white rounded-md px-4">Registrer deg</a>
               </>
             )}
           </div>
@@ -180,7 +178,11 @@ function AppContent() {
                   transition={{ duration: 0.5, delay: 0.4 }}
                   className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4"
                 >
-                  <a href="#register" className="px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors flex items-center justify-center">
+                  <a 
+                    href="#register" 
+                    onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }} 
+                    className="px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors flex items-center justify-center"
+                  >
                     Redd meg fra Excel <ChevronRight className="ml-2 h-5 w-5" />
                   </a>
                   <a href="#learn-more" className="px-8 py-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center">
@@ -321,7 +323,11 @@ function AppContent() {
               </div>
               
               <div className="text-center mt-12">
-                <a href="#register" className="inline-block px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
+                <a 
+                  href="#register" 
+                  onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }} 
+                  className="inline-block px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+                >
                   Jeg vil også ha lunsj igjen!
                 </a>
               </div>
@@ -423,7 +429,11 @@ function AppContent() {
               <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
                 Bli med hundrevis av VVS-rådgivere som har byttet ut endeløse formler med EagleFlow og fått livet tilbake.
               </p>
-              <a href="#register" className="inline-block px-8 py-4 bg-white text-primary font-medium rounded-md hover:bg-gray-100 transition-colors">
+              <a 
+                href="#register" 
+                onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }} 
+                className="inline-block px-8 py-4 bg-white text-primary font-medium rounded-md hover:bg-gray-100 transition-colors"
+              >
                 Kom i gang gratis
               </a>
               <p className="text-sm text-white/60 mt-4">
