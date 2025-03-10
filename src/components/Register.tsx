@@ -5,6 +5,7 @@ import { RegisterFormValues, registerSchema } from '../lib/validations'
 import { signUp, uploadAvatar } from '../lib/supabase'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
+import { User, Camera, Building2, Briefcase, Mail, Lock, MapPin, Calendar } from 'lucide-react'
 
 const Register = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -14,9 +15,11 @@ const Register = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const { user } = useAuth()
   
-  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
+  const { register, handleSubmit, formState: { errors }, watch } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema)
   })
+
+  const password = watch('password')
 
   // Omdiriger til dashboard hvis brukeren allerede er logget inn
   useEffect(() => {
@@ -44,7 +47,6 @@ const Register = () => {
       setIsLoading(true)
       setError(null)
       
-      // Konverter data til formatet som Supabase forventer
       const authData = await signUp(data.email, data.password, {
         full_name: data.fullName,
         birth_date: data.birthDate,
@@ -55,17 +57,14 @@ const Register = () => {
         gender: data.gender
       })
       
-      // Last opp avatar hvis tilgjengelig
       if (avatarFile && authData.user) {
         try {
           await uploadAvatar(authData.user.id, avatarFile)
         } catch (error) {
           console.error('Feil ved opplasting av avatar:', error)
-          // Fortsett selv om avatar-opplasting feiler
         }
       }
       
-      // Registrering vellykket
       setSuccess(true)
     } catch (error: any) {
       console.error('Registreringsfeil:', error)
@@ -75,7 +74,6 @@ const Register = () => {
     }
   }
 
-  // Hvis brukeren allerede er logget inn, vis ingenting (omdirigering håndteres av useEffect)
   if (user && !success) {
     return null
   }
@@ -90,7 +88,7 @@ const Register = () => {
             transition={{ duration: 0.3 }}
           >
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -119,7 +117,7 @@ const Register = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-3xl font-extrabold text-gray-900"
           >
-            Opprett en ny konto
+            Bli en del av EagleFlow-familien
           </motion.h2>
           <p className="mt-2 text-sm text-gray-600">
             Eller{' '}
@@ -135,145 +133,162 @@ const Register = () => {
           </div>
         )}
 
-        <div className="bg-white shadow-lg rounded-lg p-8">
-          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Personlig informasjon - Venstre kolonne */}
-              <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Personlig informasjon</h3>
-                
-                {/* Profilbilde */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Profilbilde (valgfritt)
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                      {avatarPreview ? (
-                        <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <svg className="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="avatar" className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                        Velg bilde
-                      </label>
-                      <input
-                        id="avatar"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        className="sr-only"
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        PNG, JPG, GIF opptil 10MB
-                      </p>
-                    </div>
-                  </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white shadow-lg rounded-lg p-8"
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {/* Avatar Upload */}
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-4 border-white shadow-lg">
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="h-12 w-12 text-gray-400" />
+                  )}
                 </div>
+                <label 
+                  htmlFor="avatar" 
+                  className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer shadow-lg hover:bg-primary-dark transition-colors"
+                >
+                  <Camera className="h-4 w-4" />
+                </label>
+                <input
+                  id="avatar"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </div>
+            </div>
 
-                {/* Fullt navn */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Personlig informasjon */}
+              <div className="space-y-6">
                 <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                    Fullt navn*
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                    <User className="h-4 w-4 mr-2" />
+                    Fullt navn
                   </label>
                   <input
-                    id="fullName"
                     type="text"
                     {...register('fullName')}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+                    placeholder="Ola Nordmann"
                   />
                   {errors.fullName && (
                     <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
                   )}
                 </div>
 
-                {/* Fødselsdato */}
                 <div>
-                  <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    Fødselsdato*
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Fødselsdato
                   </label>
                   <input
-                    id="birthDate"
                     type="date"
                     {...register('birthDate')}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
                   />
                   {errors.birthDate && (
                     <p className="mt-1 text-sm text-red-600">{errors.birthDate.message}</p>
                   )}
                 </div>
 
-                {/* Kjønn */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kjønn*
-                  </label>
-                  <div className="flex space-x-4">
-                    <div className="flex items-center">
-                      <input
-                        id="male"
-                        type="radio"
-                        value="male"
-                        {...register('gender')}
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                      />
-                      <label htmlFor="male" className="ml-2 block text-sm text-gray-700">
-                        Mann
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        id="female"
-                        type="radio"
-                        value="female"
-                        {...register('gender')}
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                      />
-                      <label htmlFor="female" className="ml-2 block text-sm text-gray-700">
-                        Kvinne
-                      </label>
-                    </div>
-                  </div>
-                  {errors.gender && (
-                    <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
-                  )}
-                </div>
-
-                {/* By */}
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                    By*
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    By
                   </label>
                   <input
-                    id="city"
                     type="text"
                     {...register('city')}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+                    placeholder="Oslo"
                   />
                   {errors.city && (
                     <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
                   )}
                 </div>
+
+                <div>
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    Kjønn
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="flex items-center p-3 border rounded-md cursor-pointer hover:border-primary transition-colors">
+                      <input
+                        type="radio"
+                        value="male"
+                        {...register('gender')}
+                        className="h-4 w-4 text-primary"
+                      />
+                      <span className="ml-2">Mann</span>
+                    </label>
+                    <label className="flex items-center p-3 border rounded-md cursor-pointer hover:border-primary transition-colors">
+                      <input
+                        type="radio"
+                        value="female"
+                        {...register('gender')}
+                        className="h-4 w-4 text-primary"
+                      />
+                      <span className="ml-2">Kvinne</span>
+                    </label>
+                  </div>
+                  {errors.gender && (
+                    <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
+                  )}
+                </div>
               </div>
 
-              {/* Jobb og konto - Høyre kolonne */}
+              {/* Jobb og kontoinformasjon */}
               <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Jobb og kontoinformasjon</h3>
-                
-                {/* E-post */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    E-post*
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Firma
                   </label>
                   <input
-                    id="email"
+                    type="text"
+                    {...register('company')}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+                    placeholder="Ditt firma"
+                  />
+                  {errors.company && (
+                    <p className="mt-1 text-sm text-red-600">{errors.company.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Stillingstittel
+                  </label>
+                  <input
+                    type="text"
+                    {...register('jobTitle')}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+                    placeholder="Din stilling"
+                  />
+                  {errors.jobTitle && (
+                    <p className="mt-1 text-sm text-red-600">{errors.jobTitle.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                    <Mail className="h-4 w-4 mr-2" />
+                    E-post
+                  </label>
+                  <input
                     type="email"
                     {...register('email')}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
                     placeholder="din@epost.no"
                   />
                   {errors.email && (
@@ -281,82 +296,55 @@ const Register = () => {
                   )}
                 </div>
 
-                {/* Firma */}
-                <div>
-                  <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
-                    Firma*
-                  </label>
-                  <input
-                    id="company"
-                    type="text"
-                    {...register('company')}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
-                  {errors.company && (
-                    <p className="mt-1 text-sm text-red-600">{errors.company.message}</p>
-                  )}
-                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                      <Lock className="h-4 w-4 mr-2" />
+                      Passord
+                    </label>
+                    <input
+                      type="password"
+                      {...register('password')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+                      placeholder="Minst 8 tegn"
+                    />
+                    {errors.password && (
+                      <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                    )}
+                  </div>
 
-                {/* Stillingstittel */}
-                <div>
-                  <label htmlFor="jobTitle" className="block text-sm font-medium text-gray-700 mb-1">
-                    Stillingstittel*
-                  </label>
-                  <input
-                    id="jobTitle"
-                    type="text"
-                    {...register('jobTitle')}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
-                  {errors.jobTitle && (
-                    <p className="mt-1 text-sm text-red-600">{errors.jobTitle.message}</p>
-                  )}
-                </div>
-
-                {/* Passord */}
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    Passord*
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    {...register('password')}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
-                  {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                  )}
-                </div>
-
-                {/* Bekreft passord */}
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Bekreft passord*
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    {...register('confirmPassword')}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
-                  {errors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
-                  )}
+                  <div>
+                    <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                      <Lock className="h-4 w-4 mr-2" />
+                      Bekreft passord
+                    </label>
+                    <input
+                      type="password"
+                      {...register('confirmPassword')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
+                      placeholder="Gjenta passord"
+                    />
+                    {errors.confirmPassword && (
+                      <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-gray-200">
-              <div className="flex items-center">
+            <div className="pt-6 border-t border-gray-200">
+              <div className="flex items-start">
                 <input
                   id="terms"
                   type="checkbox"
                   required
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded mt-1"
                 />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-                  Jeg godtar <a href="#terms" className="text-primary hover:text-primary-dark">vilkårene</a> og <a href="#privacy" className="text-primary hover:text-primary-dark">personvernerklæringen</a>
+                <label htmlFor="terms" className="ml-2 text-sm text-gray-700">
+                  Ved å registrere deg godtar du våre{' '}
+                  <a href="#terms" className="text-primary hover:text-primary-dark">vilkår</a>{' '}
+                  og{' '}
+                  <a href="#privacy" className="text-primary hover:text-primary-dark">personvernerklæring</a>
                 </label>
               </div>
 
@@ -364,7 +352,7 @@ const Register = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                  className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white ${
                     isLoading ? 'bg-primary-light cursor-not-allowed' : 'bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
                   }`}
                 >
@@ -377,13 +365,13 @@ const Register = () => {
                       Registrerer...
                     </>
                   ) : (
-                    'Registrer deg'
+                    'Opprett konto'
                   )}
                 </button>
               </div>
             </div>
           </form>
-        </div>
+        </motion.div>
       </div>
     </div>
   )
