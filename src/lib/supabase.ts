@@ -26,52 +26,91 @@ export async function signUp(
   password: string, 
   userData: Omit<UserProfile, 'id' | 'created_at' | 'avatar_url'>
 ) {
-  // 1. Sjekk først om brukeren allerede eksisterer
-  const { data: existingUser } = await supabase
-    .from('profiles')
-    .select('email')
-    .eq('email', email)
-    .single()
+  try {
+    // Konverter e-post til små bokstaver for konsistent sjekk
+    const normalizedEmail = email.toLowerCase()
 
-  if (existingUser) {
-    throw new Error('En bruker med denne e-postadressen eksisterer allerede')
-  }
+    // 1. Sjekk først om brukeren allerede eksisterer
+    const { data: existingUser, error: existingUserError } = await supabase
+      .from('profiles')
+      .select('email')
+      .ilike('email', normalizedEmail)
+      .maybeSingle()
 
-  // 2. Opprett bruker i Auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-  })
+    if (existingUserError) {
+      console.error('Feil ved sjekk av eksisterende bruker:', existingUserError)
+    }
 
-  if (authError || !authData.user) {
-    throw authError || new Error('Kunne ikke opprette bruker')
-  }
-
-  // 3. Opprett brukerprofil i profiles-tabellen
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .insert({
-      id: authData.user.id,
-      full_name: userData.full_name,
-      birth_date: userData.birth_date,
-      company: userData.company,
-      job_title: userData.job_title,
-      email: userData.email,
-      city: userData.city,
-      gender: userData.gender,
-      avatar_url: null
-    })
-
-  if (profileError) {
-    // Hvis profil-opprettelsen feiler, prøv å slette auth-brukeren
-    await supabase.auth.admin.deleteUser(authData.user.id)
-    if (profileError.code === '23505') {
+    if (existingUser) {
       throw new Error('En bruker med denne e-postadressen eksisterer allerede')
     }
-    throw profileError
-  }
 
-  return authData
+    // 2. Opprett bruker i Auth med normalisert e-post
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: normalizedEmail,
+      password,
+      options: {
+        data: {
+          full_name: userData.full_name,
+          birth_date: userData.birth_date,
+          company: userData.company,
+          job_title: userData.job_title,
+          city: userData.city,
+          gender: userData.gender
+        }
+      }
+    })
+
+    if (authError) {
+      throw authError
+    }
+
+    if (!authData.user) {
+      throw new Error('Kunne ikke opprette bruker')
+    }
+
+    // 3. Vent litt for å sikre at auth-brukeren er fullstendig opprettet
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // 4. Opprett brukerprofil i profiles-tabellen
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        full_name: userData.full_name,
+        birth_date: userData.birth_date,
+        company: userData.company,
+        job_title: userData.job_title,
+        email: normalizedEmail,
+        city: userData.city,
+        gender: userData.gender,
+        avatar_url: null
+      })
+      .select()
+      .single()
+
+    if (profileError) {
+      // Hvis profil-opprettelsen feiler, prøv å slette auth-brukeren
+      try {
+        await supabase.auth.admin.deleteUser(authData.user.id)
+      } catch (deleteError) {
+        console.error('Kunne ikke slette auth-bruker:', deleteError)
+      }
+
+      if (profileError.code === '23505') {
+        throw new Error('En bruker med denne e-postadressen eksisterer allerede')
+      }
+      throw new Error('Kunne ikke opprette brukerprofil. Vennligst prøv igjen.')
+    }
+
+    return authData
+  } catch (error: any) {
+    // Logg feilen for debugging
+    console.error('Registreringsfeil:', error)
+    
+    // Kast feilen videre med en brukervennlig melding
+    throw new Error(error.message || 'Det oppstod en feil under registrering. Vennligst prøv igjen.')
+  }
 }
 
 export async function signIn(email: string, password: string) {
