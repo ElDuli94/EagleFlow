@@ -76,10 +76,10 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Navigation */}
-      <nav className="container mx-auto px-6 py-4">
+      <nav className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <a href="#" className="text-2xl font-bold text-primary">
+            <a href="#" className="text-xl sm:text-2xl font-bold text-primary">
               Eagle<span className="text-secondary">Flow</span>
             </a>
           </div>
@@ -186,14 +186,14 @@ function AppContent() {
       ) : (
         <>
           {/* Hero Section */}
-          <section className="container mx-auto px-6 py-16 md:py-24">
+          <section className="container mx-auto px-4 sm:px-6 py-8 sm:py-16 md:py-24">
             <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 mb-12 md:mb-0">
+              <div className="md:w-1/2 mb-8 md:mb-0">
                 <motion.h1 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900 mb-6"
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-gray-900 mb-4 sm:mb-6"
                 >
                   Farvel Excel, <span className="text-primary">hallo</span> fremtiden for VVS-prosjektering
                 </motion.h1>
@@ -201,7 +201,7 @@ function AppContent() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  className="text-lg text-gray-600 mb-8"
+                  className="text-base sm:text-lg text-gray-600 mb-8"
                 >
                   EagleFlow er den kraftige plattformen som redder VVS-rådgivere fra endeløse Excel-formler, mystiske makroer og spontane krasj rett før deadline.
                 </motion.p>
@@ -259,16 +259,16 @@ function AppContent() {
           </section>
 
           {/* Excel vs EagleFlow Section */}
-          <section className="bg-gray-50 py-16 md:py-24">
-            <div className="container mx-auto px-6">
-              <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Excel vs. EagleFlow</h2>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  Fordi livet er for kort til å tilbringe det i celle A1 til Z9999.
+          <section className="bg-gray-50 py-8 sm:py-16 md:py-24">
+            <div className="container mx-auto px-4 sm:px-6">
+              <div className="text-center mb-8 sm:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">Excel vs. EagleFlow</h2>
+                <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
+                  La oss sammenligne den gamle måten med den nye. Spoiler: Det er ikke engang i nærheten.
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto">
                 {/* Excel Side */}
                 <motion.div
                   initial={{ opacity: 0, x: -50 }}
@@ -375,16 +375,16 @@ function AppContent() {
           </section>
 
           {/* Features Section */}
-          <section id="features" className="bg-white py-16 md:py-24">
-            <div className="container mx-auto px-6">
-              <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Kraftige funksjoner for VVS-prosjektering</h2>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <section id="features" className="bg-white py-8 sm:py-16 md:py-24">
+            <div className="container mx-auto px-4 sm:px-6">
+              <div className="text-center mb-8 sm:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">Kraftige funksjoner for VVS-prosjektering</h2>
+                <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
                   EagleFlow gir deg verktøyene du trenger for å prosjektere raskere, smartere og med færre hodepinetabletter.
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
                 <motion.div 
                   whileHover={{ y: -10 }}
                   className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all"
@@ -463,10 +463,10 @@ function AppContent() {
           </section>
 
           {/* CTA Section */}
-          <section className="bg-primary py-16">
-            <div className="container mx-auto px-6 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Klar til å pensjonere Excel-arket ditt?</h2>
-              <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+          <section className="bg-primary py-8 sm:py-16">
+            <div className="container mx-auto px-4 sm:px-6 text-center">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 sm:mb-6">Klar til å pensjonere Excel-arket ditt?</h2>
+              <p className="text-base sm:text-lg text-white/80 mb-6 sm:mb-8 max-w-2xl mx-auto">
                 Bli med hundrevis av VVS-rådgivere som har byttet ut endeløse formler med EagleFlow og fått livet tilbake.
               </p>
               <a 
@@ -485,15 +485,15 @@ function AppContent() {
       )}
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-6">
-          <div className="flex justify-center mb-8">
-            <span className="text-2xl font-bold text-white">
+      <footer className="bg-gray-900 text-white py-8 sm:py-12">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex justify-center mb-6 sm:mb-8">
+            <span className="text-xl sm:text-2xl font-bold text-white">
               Eagle<span className="text-secondary">Flow</span>
             </span>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 flex flex-row justify-between items-center">
-            <p className="text-gray-400">© 2023 EagleFlow. Alle rettigheter reservert. Ingen Excel-ark ble skadet under utviklingen av denne nettsiden.</p>
+          <div className="border-t border-gray-800 mt-6 sm:mt-8 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <p className="text-sm text-gray-400 text-center sm:text-left">© 2023 EagleFlow. Alle rettigheter reservert. Ingen Excel-ark ble skadet under utviklingen av denne nettsiden.</p>
             <a href="#linkedin" className="text-gray-400 hover:text-white transition-colors">
               <span className="sr-only">LinkedIn</span>
               <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
