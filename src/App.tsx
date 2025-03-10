@@ -5,6 +5,7 @@ import Pricing from './components/Pricing'
 import Contact from './components/Contact'
 import Login from './components/Login'
 import Register from './components/Register'
+import Dashboard from './components/Dashboard'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 function AppContent() {
@@ -27,6 +28,8 @@ function AppContent() {
         setCurrentPage('login');
       } else if (hash === 'register') {
         setCurrentPage('register');
+      } else if (hash === 'dashboard') {
+        setCurrentPage('dashboard');
       } else {
         setCurrentPage('home');
       }
@@ -43,10 +46,18 @@ function AppContent() {
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
+  // Omdiriger til dashboard hvis brukeren er logget inn
+  useEffect(() => {
+    if (user && (currentPage === 'login' || currentPage === 'register' || currentPage === 'home')) {
+      window.location.hash = 'dashboard'
+    }
+  }, [user, currentPage])
+
   // Håndter utlogging
   const handleSignOut = async () => {
     try {
       await authSignOut()
+      setIsMenuOpen(false)
       window.location.hash = '#'
     } catch (error) {
       console.error('Feil ved utlogging:', error)
@@ -75,13 +86,23 @@ function AppContent() {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-primary transition-colors">Funksjoner</a>
-            <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">Priser</a>
+            {!user && (
+              <>
+                <a href="#features" className="text-gray-600 hover:text-primary transition-colors">Funksjoner</a>
+                <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">Priser</a>
+              </>
+            )}
             <a href="#contact" className="text-gray-600 hover:text-primary transition-colors">Kontakt</a>
             
             {user ? (
               <>
-                <a href="#dashboard" className="text-gray-600 hover:text-primary transition-colors">Dashboard</a>
+                <a 
+                  href="#dashboard" 
+                  onClick={(e) => { e.preventDefault(); window.location.hash = 'dashboard'; }} 
+                  className="text-gray-600 hover:text-primary transition-colors"
+                >
+                  Dashboard
+                </a>
                 <button 
                   onClick={handleSignOut}
                   className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors"
@@ -117,15 +138,25 @@ function AppContent() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden mt-4 bg-white rounded-lg shadow-lg p-4">
-            <a href="#features" className="block py-2 text-gray-600 hover:text-primary">Funksjoner</a>
-            <a href="#pricing" onClick={(e) => { e.preventDefault(); window.location.hash = 'pricing'; setIsMenuOpen(false); }} className="block py-2 text-gray-600 hover:text-primary">Priser</a>
+            {!user && (
+              <>
+                <a href="#features" className="block py-2 text-gray-600 hover:text-primary">Funksjoner</a>
+                <a href="#pricing" onClick={(e) => { e.preventDefault(); window.location.hash = 'pricing'; setIsMenuOpen(false); }} className="block py-2 text-gray-600 hover:text-primary">Priser</a>
+              </>
+            )}
             <a href="#contact" onClick={(e) => { e.preventDefault(); window.location.hash = 'contact'; setIsMenuOpen(false); }} className="block py-2 text-gray-600 hover:text-primary">Kontakt</a>
             
             {user ? (
               <>
-                <a href="#dashboard" className="block py-2 text-gray-600 hover:text-primary">Dashboard</a>
+                <a 
+                  href="#dashboard" 
+                  onClick={(e) => { e.preventDefault(); window.location.hash = 'dashboard'; setIsMenuOpen(false); }} 
+                  className="block py-2 text-gray-600 hover:text-primary"
+                >
+                  Dashboard
+                </a>
                 <button 
-                  onClick={handleSignOut}
+                  onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
                   className="block w-full text-left py-2 text-primary"
                 >
                   Logg ut
@@ -150,6 +181,8 @@ function AppContent() {
         <Pricing />
       ) : currentPage === 'contact' ? (
         <Contact />
+      ) : currentPage === 'dashboard' ? (
+        <Dashboard />
       ) : (
         <>
           {/* Hero Section */}
@@ -185,7 +218,14 @@ function AppContent() {
                   >
                     Redd meg fra Excel <ChevronRight className="ml-2 h-5 w-5" />
                   </a>
-                  <a href="#learn-more" className="px-8 py-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center">
+                  <a 
+                    href="#learn-more" 
+                    onClick={(e) => { 
+                      e.preventDefault(); 
+                      document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); 
+                    }} 
+                    className="px-8 py-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center"
+                  >
                     Vis meg magien <ArrowRight className="ml-2 h-5 w-5" />
                   </a>
                 </motion.div>

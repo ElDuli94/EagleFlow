@@ -18,10 +18,10 @@ const Register = () => {
     resolver: zodResolver(registerSchema)
   })
 
-  // Omdiriger til hjemmesiden hvis brukeren allerede er logget inn
+  // Omdiriger til dashboard hvis brukeren allerede er logget inn
   useEffect(() => {
     if (user) {
-      window.location.hash = '#'
+      window.location.hash = 'dashboard'
     }
   }, [user])
 

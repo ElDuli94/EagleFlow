@@ -72,7 +72,10 @@ const Pricing = () => {
                   <span className="text-gray-400">Prioritert behandling</span>
                 </li>
               </ul>
-              <button className="w-full py-3 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors">
+              <button 
+                onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }}
+                className="w-full py-3 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+              >
                 Velg plan (ikke gjør det)
               </button>
             </div>
@@ -120,7 +123,10 @@ const Pricing = () => {
                   <span className="text-gray-600">En sekk kamelhår (perfekt for vintergensere)</span>
                 </li>
               </ul>
-              <button className="w-full py-3 px-4 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors">
+              <button 
+                onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }}
+                className="w-full py-3 px-4 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors"
+              >
                 Velg plan (virkelig, ikke gjør det)
               </button>
             </div>
@@ -165,7 +171,10 @@ const Pricing = () => {
                   <span className="text-gray-600">Vår CEO vasker bilen din med kamelmjølk*</span>
                 </li>
               </ul>
-              <button className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors">
+              <button 
+                onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }}
+                className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+              >
                 Velg plan (vær så snill, ikke)
               </button>
             </div>
@@ -190,7 +199,10 @@ const Pricing = () => {
               </p>
             </div>
             <div className="flex-shrink-0">
-              <button className="py-3 px-6 bg-white text-emerald-600 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center">
+              <button 
+                onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }}
+                className="py-3 px-6 bg-white text-emerald-600 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center"
+              >
                 <Gift className="h-5 w-5 mr-2" />
                 Få tilgang nå
               </button>
@@ -256,7 +268,11 @@ const Pricing = () => {
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
             Vi forstår. Det er vanskelig å tro at noe så bra kan være gratis. Men det er det. Virkelig. Ingen kameler nødvendig. Behold alle dine kameler.
           </p>
-          <a href="#signup" className="inline-flex items-center px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors font-medium">
+          <a 
+            href="#register" 
+            onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }}
+            className="inline-flex items-center px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors font-medium"
+          >
             <CreditCard className="mr-2 h-5 w-5" />
             <span>Registrer deg (100% gratis)</span>
           </a>
