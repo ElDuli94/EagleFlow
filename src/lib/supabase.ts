@@ -26,7 +26,18 @@ export async function signUp(
   password: string, 
   userData: Omit<UserProfile, 'id' | 'created_at' | 'avatar_url'>
 ) {
-  // 1. Opprett bruker i Auth
+  // 1. Sjekk først om brukeren allerede eksisterer
+  const { data: existingUser } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('email', email)
+    .single()
+
+  if (existingUser) {
+    throw new Error('En bruker med denne e-postadressen eksisterer allerede')
+  }
+
+  // 2. Opprett bruker i Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
@@ -36,7 +47,7 @@ export async function signUp(
     throw authError || new Error('Kunne ikke opprette bruker')
   }
 
-  // 2. Opprett brukerprofil i profiles-tabellen
+  // 3. Opprett brukerprofil i profiles-tabellen
   const { error: profileError } = await supabase
     .from('profiles')
     .insert({
@@ -48,12 +59,15 @@ export async function signUp(
       email: userData.email,
       city: userData.city,
       gender: userData.gender,
-      // Sett standard avatar basert på kjønn
       avatar_url: null
     })
 
   if (profileError) {
-    // Hvis profil-opprettelsen feiler, bør vi ideelt sett slette auth-brukeren
+    // Hvis profil-opprettelsen feiler, prøv å slette auth-brukeren
+    await supabase.auth.admin.deleteUser(authData.user.id)
+    if (profileError.code === '23505') {
+      throw new Error('En bruker med denne e-postadressen eksisterer allerede')
+    }
     throw profileError
   }
 
