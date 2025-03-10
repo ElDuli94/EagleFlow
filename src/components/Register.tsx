@@ -15,11 +15,9 @@ const Register = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const { user } = useAuth()
   
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<RegisterFormValues>({
+  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema)
   })
-
-  const password = watch('password')
 
   // Omdiriger til dashboard hvis brukeren allerede er logget inn
   useEffect(() => {
