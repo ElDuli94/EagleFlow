@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronRight, ArrowRight, BarChart3, Zap, Shield, Users, FileSpreadsheet, Calculator, Clock, Frown, Smile } from 'lucide-react'
+import { ChevronRight, ArrowRight, BarChart3, Shield, Users, FileSpreadsheet, Calculator, Clock, Frown, Smile } from 'lucide-react'
 import Pricing from './components/Pricing'
 import Contact from './components/Contact'
 

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Check, X, Diamond, Crown, Star, DollarSign, CreditCard, Gift } from 'lucide-react'
+import { Check, X, Diamond, Crown, Star, CreditCard, Gift } from 'lucide-react'
 
 const Pricing = () => {
   return (
