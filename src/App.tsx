@@ -3,10 +3,15 @@ import { motion } from 'framer-motion'
 import { ChevronRight, ArrowRight, BarChart3, Shield, Users, FileSpreadsheet, Calculator, Clock, Frown, Smile } from 'lucide-react'
 import Pricing from './components/Pricing'
 import Contact from './components/Contact'
+import Login from './components/Login'
+import Register from './components/Register'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { signOut } from './lib/supabase'
 
-function App() {
+function AppContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState('home')
+  const { user, loading, signOut: authSignOut } = useAuth()
 
   // Enkel ruting basert på hash
   useEffect(() => {
@@ -24,6 +29,10 @@ function App() {
         setCurrentPage('pricing')
       } else if (hash === 'contact') {
         setCurrentPage('contact')
+      } else if (hash === 'login') {
+        setCurrentPage('login')
+      } else if (hash === 'register') {
+        setCurrentPage('register')
       } else {
         setCurrentPage('home')
       }
@@ -36,6 +45,25 @@ function App() {
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
+
+  // Håndter utlogging
+  const handleSignOut = async () => {
+    try {
+      await authSignOut()
+      window.location.hash = '#'
+    } catch (error) {
+      console.error('Feil ved utlogging:', error)
+    }
+  }
+
+  // Vis lasteskjerm mens autentisering sjekkes
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -53,8 +81,23 @@ function App() {
             <a href="#features" className="text-gray-600 hover:text-primary transition-colors">Funksjoner</a>
             <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">Priser</a>
             <a href="#contact" className="text-gray-600 hover:text-primary transition-colors">Kontakt</a>
-            <a href="#login" className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">Logg inn</a>
-            <a href="#signup" className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">Registrer deg</a>
+            
+            {user ? (
+              <>
+                <a href="#dashboard" className="text-gray-600 hover:text-primary transition-colors">Dashboard</a>
+                <button 
+                  onClick={handleSignOut}
+                  className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors"
+                >
+                  Logg ut
+                </button>
+              </>
+            ) : (
+              <>
+                <a href="#login" className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">Logg inn</a>
+                <a href="#register" className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">Registrer deg</a>
+              </>
+            )}
           </div>
           
           {/* Mobile Navigation Toggle */}
@@ -80,14 +123,33 @@ function App() {
             <a href="#features" className="block py-2 text-gray-600 hover:text-primary">Funksjoner</a>
             <a href="#pricing" className="block py-2 text-gray-600 hover:text-primary">Priser</a>
             <a href="#contact" className="block py-2 text-gray-600 hover:text-primary">Kontakt</a>
-            <a href="#login" className="block py-2 text-primary">Logg inn</a>
-            <a href="#signup" className="block py-2 mt-2 bg-primary text-white rounded-md px-4">Registrer deg</a>
+            
+            {user ? (
+              <>
+                <a href="#dashboard" className="block py-2 text-gray-600 hover:text-primary">Dashboard</a>
+                <button 
+                  onClick={handleSignOut}
+                  className="block w-full text-left py-2 text-primary"
+                >
+                  Logg ut
+                </button>
+              </>
+            ) : (
+              <>
+                <a href="#login" className="block py-2 text-primary">Logg inn</a>
+                <a href="#register" className="block py-2 mt-2 bg-primary text-white rounded-md px-4">Registrer deg</a>
+              </>
+            )}
           </div>
         )}
       </nav>
 
       {/* Main Content */}
-      {currentPage === 'pricing' ? (
+      {currentPage === 'login' ? (
+        <Login />
+      ) : currentPage === 'register' ? (
+        <Register />
+      ) : currentPage === 'pricing' ? (
         <Pricing />
       ) : currentPage === 'contact' ? (
         <Contact />
@@ -119,7 +181,7 @@ function App() {
                   transition={{ duration: 0.5, delay: 0.4 }}
                   className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4"
                 >
-                  <a href="#signup" className="px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors flex items-center justify-center">
+                  <a href="#register" className="px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors flex items-center justify-center">
                     Redd meg fra Excel <ChevronRight className="ml-2 h-5 w-5" />
                   </a>
                   <a href="#learn-more" className="px-8 py-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center">
@@ -260,7 +322,7 @@ function App() {
               </div>
               
               <div className="text-center mt-12">
-                <a href="#signup" className="inline-block px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
+                <a href="#register" className="inline-block px-8 py-4 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
                   Jeg vil også ha lunsj igjen!
                 </a>
               </div>
@@ -362,7 +424,7 @@ function App() {
               <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
                 Bli med hundrevis av VVS-rådgivere som har byttet ut endeløse formler med EagleFlow og fått livet tilbake.
               </p>
-              <a href="#signup" className="inline-block px-8 py-4 bg-white text-primary font-medium rounded-md hover:bg-gray-100 transition-colors">
+              <a href="#register" className="inline-block px-8 py-4 bg-white text-primary font-medium rounded-md hover:bg-gray-100 transition-colors">
                 Kom i gang gratis
               </a>
               <p className="text-sm text-white/60 mt-4">
@@ -393,6 +455,14 @@ function App() {
         </div>
       </footer>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 
