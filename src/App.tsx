@@ -6,7 +6,6 @@ import Contact from './components/Contact'
 import Login from './components/Login'
 import Register from './components/Register'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import { signOut } from './lib/supabase'
 
 function AppContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
