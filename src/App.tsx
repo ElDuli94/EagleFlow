@@ -13,7 +13,7 @@ function AppContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState('home')
   const { user, loading, signOut: authSignOut } = useAuth()
-  const [selectedProjectId, setSelectedProjectId] = useState(null)
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
 
   // Enkel ruting basert på hash
   useEffect(() => {
