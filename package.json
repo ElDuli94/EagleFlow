@@ -3,13 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://elduli94.github.io/eagleflow/",
+  "homepage": ".",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build && touch dist/.nojekyll && cp public/404.html dist/ && cp public/vite.svg dist/ && cp public/CNAME dist/",
+    "predeploy": "npm run build && touch dist/.nojekyll && cp public/404.html dist/ && cp public/vite.svg dist/",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
