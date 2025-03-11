@@ -9,6 +9,7 @@ export interface Project {
   progress: number;
   client?: string;
   address?: string;
+  image_url?: string;
   status: 'active' | 'completed' | 'archived';
   created_at: string;
   updated_at: string;

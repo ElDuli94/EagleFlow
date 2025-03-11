@@ -6,12 +6,14 @@ import Contact from './components/Contact'
 import Login from './components/Login'
 import Register from './components/Register'
 import Dashboard from './components/Dashboard'
+import ProjectDashboard from './components/ProjectDashboard'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 
 function AppContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState('home')
   const { user, loading, signOut: authSignOut } = useAuth()
+  const [selectedProjectId, setSelectedProjectId] = useState(null)
 
   // Enkel ruting basert på hash
   useEffect(() => {
@@ -30,6 +32,11 @@ function AppContent() {
         setCurrentPage('register');
       } else if (hash === 'dashboard') {
         setCurrentPage('dashboard');
+      } else if (hash.startsWith('project/')) {
+        const projectId = hash.replace('project/', '');
+        setCurrentPage('project');
+        // Lagre prosjekt-ID i state for å bruke den i ProjectDashboard
+        setSelectedProjectId(projectId);
       } else {
         setCurrentPage('home');
       }
@@ -83,7 +90,14 @@ function AppContent() {
         <nav className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <a href="#" className="text-xl sm:text-2xl font-bold text-primary">
+              <a 
+                href="#" 
+                onClick={(e) => { 
+                  e.preventDefault(); 
+                  window.location.hash = user ? 'dashboard' : ''; 
+                }} 
+                className="text-xl sm:text-2xl font-bold text-primary"
+              >
                 Eagle<span className="text-secondary">Flow</span>
               </a>
             </div>
@@ -188,6 +202,8 @@ function AppContent() {
         <Contact />
       ) : currentPage === 'dashboard' ? (
         <Dashboard />
+      ) : currentPage === 'project' ? (
+        <ProjectDashboard projectId={selectedProjectId} />
       ) : (
         <>
           {/* Hero Section */}

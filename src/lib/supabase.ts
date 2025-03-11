@@ -243,7 +243,14 @@ export async function getUserProjects(): Promise<Project[]> {
     console.log('Henter prosjekter for bruker:', session.user.id);
     const { data: projects, error } = await supabase
       .from('projects')
-      .select('*')
+      .select(`
+        *,
+        project_members!inner (
+          user_id,
+          role
+        )
+      `)
+      .eq('project_members.user_id', session.user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -349,21 +356,42 @@ export async function deleteProject(id: string): Promise<void> {
 
 // Hent prosjektmedlemmer med profilinformasjon
 export async function getProjectMembers(projectId: string): Promise<ProjectMember[]> {
-  const { data, error } = await supabase
-    .from('project_members')
-    .select(`
-      *,
-      profile:profiles(*)
-    `)
-    .eq('project_id', projectId)
-    .order('role', { ascending: false }) // Sorter etter rolle (owner først, deretter admin, osv.)
+  try {
+    const { data, error } = await supabase
+      .from('project_members')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('role', { ascending: false }); // Sorter etter rolle (owner først, deretter admin, osv.)
 
-  if (error) {
-    console.error('Feil ved henting av prosjektmedlemmer:', error)
-    throw error
+    if (error) {
+      console.error('Feil ved henting av prosjektmedlemmer:', error);
+      throw error;
+    }
+
+    // Hent profildata separat for medlemmer
+    if (data && data.length > 0) {
+      const userIds = data.map(member => member.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Feil ved henting av profiler:', profilesError);
+      } else if (profiles) {
+        // Koble profiler til medlemmer
+        return data.map(member => ({
+          ...member,
+          profile: profiles.find(profile => profile.id === member.user_id) || undefined
+        }));
+      }
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Feil ved henting av prosjektmedlemmer:', error);
+    return [];
   }
-
-  return data || []
 }
 
 // Inviter bruker til prosjekt
@@ -541,21 +569,45 @@ export async function getUserInvitations(): Promise<ProjectInvitation[]> {
 
 // Hent invitasjoner for et prosjekt
 export async function getProjectInvitations(projectId: string): Promise<ProjectInvitation[]> {
-  const { data, error } = await supabase
-    .from('project_invitations')
-    .select(`
-      *,
-      inviter:profiles!invited_by(full_name, email)
-    `)
-    .eq('project_id', projectId)
-    .order('created_at', { ascending: false })
+  try {
+    const { data, error } = await supabase
+      .from('project_invitations')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Feil ved henting av prosjektinvitasjoner:', error)
-    throw error
+    if (error) {
+      console.error('Feil ved henting av prosjektinvitasjoner:', error);
+      throw error;
+    }
+
+    // Hent inviterer-profiler separat hvis det er nødvendig
+    if (data && data.length > 0) {
+      const inviterIds = data.map(invitation => invitation.invited_by).filter(Boolean);
+      
+      if (inviterIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', inviterIds);
+
+        if (profilesError) {
+          console.error('Feil ved henting av inviterer-profiler:', profilesError);
+        } else if (profiles) {
+          // Koble inviterer-profiler til invitasjoner
+          return data.map(invitation => ({
+            ...invitation,
+            inviter: profiles.find(profile => profile.id === invitation.invited_by) || undefined
+          }));
+        }
+      }
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Feil ved henting av prosjektinvitasjoner:', error);
+    return [];
   }
-
-  return data || []
 }
 
 // Kanseller invitasjon
@@ -679,3 +731,110 @@ export const getSession = async () => {
   }
   return data.session;
 };
+
+// Last opp prosjektbilde
+export async function uploadProjectImage(
+  projectId: string,
+  file: File
+): Promise<{ url: string | null; error: Error | null }> {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${projectId}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    // Last opp filen til storage
+    const { error: uploadError } = await supabase.storage
+      .from('project_images')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      console.error('Feil ved opplasting av prosjektbilde:', uploadError);
+      return { url: null, error: new Error(uploadError.message) };
+    }
+
+    // Hent offentlig URL for bildet
+    const { data } = supabase.storage
+      .from('project_images')
+      .getPublicUrl(filePath);
+
+    const imageUrl = data.publicUrl;
+
+    // Oppdater prosjektet med bilde-URL
+    const { error: updateError } = await supabase
+      .from('projects')
+      .update({ image_url: imageUrl, updated_at: new Date().toISOString() })
+      .eq('id', projectId);
+
+    if (updateError) {
+      console.error('Feil ved oppdatering av prosjekt med bilde-URL:', updateError);
+      return { url: null, error: new Error(updateError.message) };
+    }
+
+    return { url: imageUrl, error: null };
+  } catch (error) {
+    console.error('Uventet feil ved opplasting av prosjektbilde:', error);
+    return { url: null, error: error as Error };
+  }
+}
+
+// Slett prosjektbilde
+export async function deleteProjectImage(
+  projectId: string,
+  imageUrl: string
+): Promise<{ success: boolean; error: Error | null }> {
+  try {
+    // Hent filnavnet fra URL-en
+    const fileName = imageUrl.split('/').pop();
+    
+    if (!fileName) {
+      return { success: false, error: new Error('Ugyldig bilde-URL') };
+    }
+
+    // Slett filen fra storage
+    const { error: deleteError } = await supabase.storage
+      .from('project_images')
+      .remove([fileName]);
+
+    if (deleteError) {
+      console.error('Feil ved sletting av prosjektbilde:', deleteError);
+      return { success: false, error: new Error(deleteError.message) };
+    }
+
+    // Oppdater prosjektet for å fjerne bilde-URL
+    const { error: updateError } = await supabase
+      .from('projects')
+      .update({ image_url: null, updated_at: new Date().toISOString() })
+      .eq('id', projectId);
+
+    if (updateError) {
+      console.error('Feil ved oppdatering av prosjekt etter bildesletting:', updateError);
+      return { success: false, error: new Error(updateError.message) };
+    }
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Uventet feil ved sletting av prosjektbilde:', error);
+    return { success: false, error: error as Error };
+  }
+}
+
+// Hent et enkelt prosjekt
+export async function getProject(projectId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+    
+    if (error) {
+      console.error('Feil ved henting av prosjekt:', error);
+      return { data: null, error };
+    }
+    
+    return { data, error: null };
+  } catch (error) {
+    console.error('Uventet feil ved henting av prosjekt:', error);
+    return { data: null, error: error as Error };
+  }
+}

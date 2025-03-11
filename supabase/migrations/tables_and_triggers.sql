@@ -24,6 +24,11 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('avatars', 'avatars', true)
 ON CONFLICT (id) DO NOTHING;
 
+-- Opprett en lagringsbøtte for prosjektbilder
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('project_images', 'project_images', true)
+ON CONFLICT (id) DO NOTHING;
+
 -- Opprett prosjekttabell
 DROP TABLE IF EXISTS projects CASCADE;
 CREATE TABLE IF NOT EXISTS projects (
@@ -37,6 +42,7 @@ CREATE TABLE IF NOT EXISTS projects (
   progress INTEGER DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
   client TEXT,
   address TEXT,
+  image_url TEXT,
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'archived')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
