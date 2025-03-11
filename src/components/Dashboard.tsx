@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { 
   Menu, X, ChevronDown, ChevronUp, Settings, 
   Droplets, Zap, Wind, Gauge, Package, Plus, Loader, Users, LogOut,
-  User, Edit, ExternalLink, Calendar, FolderOpen
+  User, Edit, ExternalLink, Calendar
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { maleAvatar, femaleAvatar } from '../assets/avatars'
@@ -137,7 +137,7 @@ const Dashboard = () => {
       try {
         setLoadingInvitations(true)
         const invitations = await getProjectInvitations(selectedProject.id)
-        setProjectInvitations(invitations as ProjectInvitation[])
+        setProjectInvitations(invitations)
       } catch (error) {
         console.error('Feil ved henting av prosjektinvitasjoner:', error)
       } finally {

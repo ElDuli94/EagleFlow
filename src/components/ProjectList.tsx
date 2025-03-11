@@ -5,7 +5,7 @@ import type { Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
 export function ProjectList() {
-  const { user } = useAuth();
+  const { } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
