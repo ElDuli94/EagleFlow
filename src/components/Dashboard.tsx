@@ -3,12 +3,12 @@ import { useAuth } from '../contexts/AuthContext'
 import { 
   Menu, X, ChevronDown, ChevronUp, Settings, 
   Droplets, Zap, Wind, Gauge, Package, Plus, Loader, Users, LogOut,
-  User, Edit, ExternalLink, Calendar
+  User, Edit, ExternalLink, Calendar, Trash2, AlertTriangle
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { maleAvatar, femaleAvatar } from '../assets/avatars'
 import { 
-  getUserProjects, createProject, 
+  getUserProjects, createProject, updateProject, deleteProject,
   getProjectMembers, inviteUserToProject, removeProjectMember, updateProjectMemberRole,
   getProjectInvitations, cancelInvitation
 } from '../lib/supabase'
@@ -64,6 +64,24 @@ const Dashboard = () => {
 
   // State for prosjekter
   const [projectError, setProjectError] = useState<string | null>(null)
+
+  // Redigering av prosjekt
+  const [showEditProjectModal, setShowEditProjectModal] = useState(false)
+  const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [editProjectName, setEditProjectName] = useState('')
+  const [editProjectDescription, setEditProjectDescription] = useState('')
+  const [editProjectSize, setEditProjectSize] = useState('')
+  const [editProjectLocation, setEditProjectLocation] = useState('')
+  const [editProjectMainContractor, setEditProjectMainContractor] = useState('')
+  const [editProjectTechnicalContractor, setEditProjectTechnicalContractor] = useState('')
+  const [editProjectClient, setEditProjectClient] = useState('')
+  const [editProjectAddress, setEditProjectAddress] = useState('')
+  const [updatingProject, setUpdatingProject] = useState(false)
+  
+  // Sletting av prosjekt
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null)
+  const [deletingProject, setDeletingProject] = useState(false)
 
   // Logg profil for debugging
   useEffect(() => {
@@ -191,6 +209,12 @@ const Dashboard = () => {
       const projectData: Partial<Project> = {
         name: newProjectName,
         description: newProjectDescription || undefined,
+        size: newProjectSize || undefined,
+        location: newProjectLocation || undefined,
+        main_contractor: newProjectMainContractor || undefined,
+        technical_contractor: newProjectTechnicalContractor || undefined,
+        client: newProjectClient || undefined,
+        address: newProjectAddress || undefined,
         status: 'active',
         progress: 0
       };
@@ -223,6 +247,101 @@ const Dashboard = () => {
       setProjectError(error.message || 'Det oppstod en feil ved opprettelse av prosjekt');
     } finally {
       setCreatingProject(false);
+    }
+  };
+
+  // Åpne redigeringsmodal for prosjekt
+  const handleEditProject = (project: Project) => {
+    setEditingProject(project);
+    setEditProjectName(project.name);
+    setEditProjectDescription(project.description || '');
+    setEditProjectSize(project.size || '');
+    setEditProjectLocation(project.location || '');
+    setEditProjectMainContractor(project.main_contractor || '');
+    setEditProjectTechnicalContractor(project.technical_contractor || '');
+    setEditProjectClient(project.client || '');
+    setEditProjectAddress(project.address || '');
+    setShowEditProjectModal(true);
+  };
+
+  // Oppdater prosjekt
+  const handleUpdateProject = async () => {
+    if (!editingProject) return;
+    if (!editProjectName) {
+      setProjectError('Prosjektnavn er påkrevd');
+      return;
+    }
+    
+    setProjectError(null);
+    setUpdatingProject(true);
+    
+    try {
+      const updates: Partial<Project> = {
+        name: editProjectName,
+        description: editProjectDescription || undefined,
+        size: editProjectSize || undefined,
+        location: editProjectLocation || undefined,
+        main_contractor: editProjectMainContractor || undefined,
+        technical_contractor: editProjectTechnicalContractor || undefined,
+        client: editProjectClient || undefined,
+        address: editProjectAddress || undefined
+      };
+
+      console.log('Oppdaterer prosjekt:', updates);
+
+      const updatedProject = await updateProject(editingProject.id, updates);
+      
+      console.log('Prosjekt oppdatert:', updatedProject);
+      
+      // Oppdater prosjektlisten
+      setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+      
+      // Oppdater valgt prosjekt hvis det er det som ble redigert
+      if (selectedProject && selectedProject.id === updatedProject.id) {
+        setSelectedProject(updatedProject);
+      }
+      
+      setShowEditProjectModal(false);
+    } catch (error: any) {
+      console.error('Feil ved oppdatering av prosjekt:', error);
+      setProjectError(error.message || 'Det oppstod en feil ved oppdatering av prosjekt');
+    } finally {
+      setUpdatingProject(false);
+    }
+  };
+
+  // Åpne bekreftelsesdialog for sletting
+  const handleConfirmDelete = (project: Project) => {
+    setProjectToDelete(project);
+    setShowDeleteConfirmation(true);
+  };
+
+  // Slett prosjekt
+  const handleDeleteProject = async () => {
+    if (!projectToDelete) return;
+    
+    setDeletingProject(true);
+    
+    try {
+      await deleteProject(projectToDelete.id);
+      
+      console.log('Prosjekt slettet:', projectToDelete.id);
+      
+      // Fjern prosjektet fra listen
+      setProjects(prev => prev.filter(p => p.id !== projectToDelete.id));
+      
+      // Hvis det slettede prosjektet var det valgte, nullstill valgt prosjekt
+      if (selectedProject && selectedProject.id === projectToDelete.id) {
+        setSelectedProject(null);
+        setActiveCategory(null);
+      }
+      
+      setShowDeleteConfirmation(false);
+    } catch (error: any) {
+      console.error('Feil ved sletting av prosjekt:', error);
+      setProjectError(error.message || 'Det oppstod en feil ved sletting av prosjekt');
+    } finally {
+      setDeletingProject(false);
     }
   };
 
@@ -541,13 +660,29 @@ const Dashboard = () => {
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-semibold">Prosjektoversikt</h2>
-                  <button
-                    onClick={() => setShowMembersModal(true)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded flex items-center hover:bg-blue-600 transition-colors"
-                  >
-                    <Users size={18} className="mr-2" />
-                    Administrer medlemmer
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEditProject(selectedProject)}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded flex items-center hover:bg-gray-200 transition-colors"
+                    >
+                      <Edit size={18} className="mr-2" />
+                      Rediger prosjekt
+                    </button>
+                    <button
+                      onClick={() => handleConfirmDelete(selectedProject)}
+                      className="px-4 py-2 bg-red-100 text-red-700 rounded flex items-center hover:bg-red-200 transition-colors"
+                    >
+                      <Trash2 size={18} className="mr-2" />
+                      Slett prosjekt
+                    </button>
+                    <button
+                      onClick={() => setShowMembersModal(true)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded flex items-center hover:bg-blue-600 transition-colors"
+                    >
+                      <Users size={18} className="mr-2" />
+                      Administrer medlemmer
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -628,12 +763,29 @@ const Dashboard = () => {
                               </div>
                             </div>
                           </div>
-                          <button
-                            className="text-blue-600 hover:text-blue-800"
-                            onClick={() => handleOpenProject(project.id)}
-                          >
-                            <ExternalLink className="h-5 w-5" />
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              className="text-gray-500 hover:text-blue-600"
+                              onClick={() => handleEditProject(project)}
+                              title="Rediger prosjekt"
+                            >
+                              <Edit className="h-5 w-5" />
+                            </button>
+                            <button
+                              className="text-gray-500 hover:text-red-600"
+                              onClick={() => handleConfirmDelete(project)}
+                              title="Slett prosjekt"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                            <button
+                              className="text-blue-600 hover:text-blue-800"
+                              onClick={() => handleOpenProject(project.id)}
+                              title="Åpne prosjekt"
+                            >
+                              <ExternalLink className="h-5 w-5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -795,6 +947,154 @@ const Dashboard = () => {
                   <>
                     <Plus size={16} className="mr-2" />
                     Opprett prosjekt
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for redigering av prosjekt */}
+      {showEditProjectModal && editingProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h2 className="text-lg font-medium">Rediger prosjekt</h2>
+              <button 
+                onClick={() => {
+                  setShowEditProjectModal(false);
+                  setProjectError(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4">
+              {projectError && (
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+                  {projectError}
+                </div>
+              )}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Prosjektnavn *
+                </label>
+                <input
+                  type="text"
+                  value={editProjectName}
+                  onChange={(e) => setEditProjectName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Skriv inn prosjektnavn"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Størrelse</label>
+                <input
+                  type="text"
+                  value={editProjectSize}
+                  onChange={(e) => setEditProjectSize(e.target.value)}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="f.eks. 1000 m²"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Lokasjon</label>
+                <input
+                  type="text"
+                  value={editProjectLocation}
+                  onChange={(e) => setEditProjectLocation(e.target.value)}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="By/sted"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Totalentreprenør</label>
+                <input
+                  type="text"
+                  value={editProjectMainContractor}
+                  onChange={(e) => setEditProjectMainContractor(e.target.value)}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Entreprenørens navn"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Teknisk entreprenør</label>
+                <input
+                  type="text"
+                  value={editProjectTechnicalContractor}
+                  onChange={(e) => setEditProjectTechnicalContractor(e.target.value)}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Teknisk entreprenørs navn"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Kunde</label>
+                <input
+                  type="text"
+                  value={editProjectClient}
+                  onChange={(e) => setEditProjectClient(e.target.value)}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Kundenavn"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Adresse</label>
+                <input
+                  type="text"
+                  value={editProjectAddress}
+                  onChange={(e) => setEditProjectAddress(e.target.value)}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Prosjektadresse"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Beskrivelse
+                </label>
+                <textarea
+                  value={editProjectDescription}
+                  onChange={(e) => setEditProjectDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Skriv inn prosjektbeskrivelse"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="p-4 border-t bg-gray-50 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditProjectModal(false);
+                  setProjectError(null);
+                }}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm mr-2 hover:bg-gray-50"
+              >
+                Avbryt
+              </button>
+              <button
+                type="button"
+                onClick={handleUpdateProject}
+                disabled={updatingProject}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {updatingProject ? (
+                  <>
+                    <Loader size={16} className="animate-spin mr-2" />
+                    Oppdaterer...
+                  </>
+                ) : (
+                  <>
+                    <Edit size={16} className="mr-2" />
+                    Oppdater prosjekt
                   </>
                 )}
               </button>
@@ -1179,6 +1479,46 @@ const Dashboard = () => {
       {/* Profilredigering */}
       {showProfileEdit && (
         <ProfileEdit onClose={() => setShowProfileEdit(false)} />
+      )}
+
+      {/* Modal for å bekrefte sletting av prosjekt */}
+      {showDeleteConfirmation && projectToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
+            <div className="p-4 border-b">
+              <h2 className="text-xl font-semibold">Bekreft sletting</h2>
+            </div>
+            <div className="p-4">
+              <p className="mb-4">
+                Er du sikker på at du vil slette <span className="font-semibold">{projectToDelete.name}</span>?
+              </p>
+              <p className="text-gray-500 text-sm">
+                Dette vil fjerne prosjektet permanent.
+              </p>
+            </div>
+            <div className="p-4 border-t flex justify-end">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirmation(false)
+                  setProjectToDelete(null)
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 mr-2"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={handleDeleteProject}
+                disabled={deletingProject}
+                className={`px-4 py-2 bg-red-500 text-white rounded flex items-center ${
+                  deletingProject ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600'
+                }`}
+              >
+                {deletingProject && <Loader size={16} className="animate-spin mr-2" />}
+                {deletingProject ? 'Sletter...' : 'Slett prosjekt'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
