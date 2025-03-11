@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { 
   Menu, X, ChevronDown, ChevronUp, Settings, 
   Droplets, Zap, Wind, Gauge, Package, Plus, Loader, Users, LogOut,
-  User, Edit, ExternalLink, Calendar, Trash2, AlertTriangle
+  User, Edit, ExternalLink, Calendar, Trash2
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { maleAvatar, femaleAvatar } from '../assets/avatars'
