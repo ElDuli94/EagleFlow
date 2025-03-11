@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Project, UserProfile, ProjectMember, ProjectInvitation } from '../types';
 
 // Hent miljøvariabler
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
@@ -18,62 +19,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 // Dette bør kun brukes på server-side, men for demo-formål bruker vi det her
 // const serviceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || ''
 // const supabaseAdmin = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : null
-
-// Brukertype basert på Supabase Auth og profiltabell
-export type UserProfile = {
-  id: string
-  full_name: string
-  birth_date: string
-  company: string
-  job_title: string
-  email: string
-  city: string
-  avatar_url: string | null
-  gender: 'male' | 'female'
-  created_at: string
-}
-
-// Prosjekttype
-export interface Project {
-  id: string
-  name: string
-  description: string | null
-  created_at: string
-  size?: string | null
-  location?: string | null
-  main_contractor?: string | null
-  technical_contractor?: string | null
-  client?: string | null
-  address?: string | null
-  status?: string
-  progress?: number
-  project_members?: { user_id: string; role: string }[]
-}
-
-// Prosjektmedlemstype
-export type ProjectMember = {
-  project_id: string
-  user_id: string
-  role: 'owner' | 'admin' | 'member' | 'viewer'
-  invited_by: string | null
-  invitation_status: 'pending' | 'accepted' | 'rejected'
-  invitation_email: string | null
-  created_at: string
-  profile?: UserProfile
-}
-
-// Prosjektinvitasjonstype
-export type ProjectInvitation = {
-  id: string
-  project_id: string
-  email: string
-  role: 'admin' | 'member' | 'viewer'
-  invited_by: string
-  created_at: string
-  expires_at: string
-  token: string
-  status: 'pending' | 'accepted' | 'rejected'
-}
 
 // Autentiseringsfunksjoner
 export async function signUp(
@@ -225,118 +170,149 @@ export const uploadAvatar = async (userId: string, file: File): Promise<string> 
 
 export async function getProfile(userId: string): Promise<UserProfile | null> {
   try {
-    console.log('Henter profil for bruker:', userId)
+    console.log('Henter profil for bruker:', userId);
     
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .maybeSingle()
+      .maybeSingle();
 
     if (error) {
-      console.error('Feil ved henting av profil:', error.message)
-      console.error('Feildetaljer:', error)
-      return null
+      console.error('Feil ved henting av profil:', error.message);
+      console.error('Feildetaljer:', error);
+      return null;
     }
 
     if (!data) {
-      console.log('Ingen profildata funnet for bruker:', userId)
-      return null
+      console.log('Ingen profildata funnet for bruker:', userId);
+      
+      // Opprett en ny profil hvis den ikke finnes
+      console.log('Oppretter ny profil for bruker:', userId);
+      
+      const newProfile: Partial<UserProfile> = {
+        id: userId,
+        full_name: '',
+        birth_date: new Date('2000-01-01').toISOString().split('T')[0],
+        company: '',
+        job_title: '',
+        email: '',
+        city: '',
+        gender: 'male',
+        created_at: new Date().toISOString()
+      };
+      
+      const { data: newProfileData, error: insertError } = await supabase
+        .from('profiles')
+        .insert([newProfile])
+        .select()
+        .single();
+        
+      if (insertError) {
+        console.error('Feil ved oppretting av profil:', insertError);
+        return null;
+      }
+      
+      console.log('Ny profil opprettet:', newProfileData);
+      return newProfileData;
     }
 
     // Logg profildata for debugging
     console.log('Profildata hentet:', {
       id: data.id,
       full_name: data.full_name || '[Tom]',
-      company: data.company || '[Tom]',
-      job_title: data.job_title || '[Tom]',
-      email: data.email,
-      city: data.city || '[Tom]',
-      gender: data.gender
-    })
-
-    return data as UserProfile
+      avatar_url: data.avatar_url ? 'Finnes' : 'Mangler'
+    });
+    
+    return data;
   } catch (error) {
-    console.error('Uventet feil ved henting av profil:', error)
-    return null
+    console.error('Uventet feil ved henting av profil:', error);
+    return null;
   }
 }
 
 // Hent prosjekter for innlogget bruker
-export const getUserProjects = async (): Promise<Project[]> => {
+export async function getUserProjects(): Promise<Project[]> {
   try {
     const session = await getSession();
-    if (!session?.user) {
+    if (!session) {
       console.log('Ingen bruker funnet for å hente prosjekter');
       return [];
     }
 
-    const userId = session.user.id;
-    console.log('Henter prosjekter for bruker:', userId);
-
-    // Hent prosjekter der brukeren er medlem, uten å bruke inner join
-    const { data: memberProjects, error: memberError } = await supabase
+    console.log('Henter prosjekter for bruker:', session.user.id);
+    const { data: projects, error } = await supabase
       .from('projects')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (memberError) {
-      console.error('Feil ved henting av prosjekter:', memberError);
+    if (error) {
+      console.error('Feil ved henting av prosjekter:', error);
+      throw error;
+    }
+
+    if (!projects) {
+      console.log('Ingen prosjekter funnet');
       return [];
     }
 
-    console.log('Hentet prosjekter:', memberProjects?.length || 0);
-    return memberProjects || [];
+    console.log('Hentet prosjekter:', projects);
+    return projects;
   } catch (error) {
     console.error('Uventet feil ved henting av prosjekter:', error);
-    return [];
+    throw error;
   }
-};
+}
 
 // Opprett nytt prosjekt
-export const createProject = async (name: string, description: string): Promise<Project | null> => {
+export async function createProject(projectData: Partial<Project>): Promise<{ project: Project | null; error: Error | null }> {
   try {
     const session = await getSession();
-    if (!session?.user) {
+    if (!session) {
       console.log('Ingen bruker funnet for å opprette prosjekt');
-      throw new Error('Du må være logget inn for å opprette et prosjekt');
+      return { project: null, error: new Error('Ingen bruker funnet') };
     }
 
     const userId = session.user.id;
     console.log('Oppretter prosjekt for bruker:', userId);
 
-    // Opprett prosjekt
-    const { data: project, error: projectError } = await supabase
+    // Legg til created_by-feltet og andre påkrevde felter
+    const newProject = {
+      ...projectData,
+      created_by: userId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      status: projectData.status || 'active',
+      progress: projectData.progress || 0
+    };
+
+    console.log('Sender prosjektdata:', newProject);
+
+    // Opprett prosjektet
+    const { data, error } = await supabase
       .from('projects')
-      .insert([
-        { 
-          name, 
-          description,
-          created_by: userId,
-          status: 'active',
-          progress: 0
-        }
-      ])
-      .select()
-      .single();
+      .insert([newProject])
+      .select();
 
-    if (projectError) {
-      console.error('Feil ved opprettelse av prosjekt:', projectError);
-      throw new Error('Kunne ikke opprette prosjekt: ' + projectError.message);
+    if (error) {
+      console.error('Feil ved oppretting av prosjekt:', error);
+      return { project: null, error: new Error(error.message) };
     }
 
-    if (!project) {
-      console.error('Prosjekt ble ikke opprettet, ingen data returnert');
-      throw new Error('Kunne ikke opprette prosjekt: Ingen data returnert');
+    if (!data || data.length === 0) {
+      console.error('Ingen data returnert ved oppretting av prosjekt');
+      return { project: null, error: new Error('Kunne ikke opprette prosjekt') };
     }
 
-    console.log('Prosjekt opprettet:', project.id);
-    return project;
-  } catch (error: any) {
-    console.error('Uventet feil ved opprettelse av prosjekt:', error);
-    throw error;
+    const createdProject = data[0];
+    console.log('Prosjekt opprettet:', createdProject);
+
+    return { project: createdProject, error: null };
+  } catch (error) {
+    console.error('Uventet feil ved oppretting av prosjekt:', error);
+    return { project: null, error: error as Error };
   }
-};
+}
 
 // Oppdater prosjekt
 export async function updateProject(

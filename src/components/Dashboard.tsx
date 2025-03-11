@@ -8,11 +8,11 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { maleAvatar, femaleAvatar } from '../assets/avatars'
 import { 
-  getUserProjects, Project, createProject, 
-  ProjectMember, ProjectInvitation,
+  getUserProjects, createProject, 
   getProjectMembers, inviteUserToProject, removeProjectMember, updateProjectMemberRole,
   getProjectInvitations, cancelInvitation
 } from '../lib/supabase'
+import type { Project, ProjectMember, ProjectInvitation } from '../types'
 import ProfileEdit from './ProfileEdit'
 
 const Dashboard = () => {
@@ -40,13 +40,13 @@ const Dashboard = () => {
   const [showMembersModal, setShowMembersModal] = useState(false)
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState<'admin' | 'member' | 'viewer'>('member')
+  const [inviteRole, setInviteRole] = useState<'admin' | 'member'>('member')
   const [sendingInvite, setSendingInvite] = useState(false)
   const [memberToRemove, setMemberToRemove] = useState<ProjectMember | null>(null)
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false)
   const [removingMember, setRemovingMember] = useState(false)
   const [memberToEdit, setMemberToEdit] = useState<ProjectMember | null>(null)
-  const [editRole, setEditRole] = useState<'admin' | 'member' | 'viewer'>('member')
+  const [editRole, setEditRole] = useState<'admin' | 'member'>('member')
   const [showEditRoleModal, setShowEditRoleModal] = useState(false)
   const [updatingRole, setUpdatingRole] = useState(false)
   
@@ -137,7 +137,7 @@ const Dashboard = () => {
       try {
         setLoadingInvitations(true)
         const invitations = await getProjectInvitations(selectedProject.id)
-        setProjectInvitations(invitations)
+        setProjectInvitations(invitations as ProjectInvitation[])
       } catch (error) {
         console.error('Feil ved henting av prosjektinvitasjoner:', error)
       } finally {
@@ -188,14 +188,34 @@ const Dashboard = () => {
     setCreatingProject(true);
     
     try {
-      console.log('Oppretter prosjekt:', { name: newProjectName, description: newProjectDescription });
-      const project = await createProject(newProjectName, newProjectDescription || '');
+      const projectData: Partial<Project> = {
+        name: newProjectName,
+        description: newProjectDescription || undefined,
+        status: 'active',
+        progress: 0
+      };
+
+      console.log('Oppretter prosjekt:', projectData);
+
+      const { project, error } = await createProject(projectData);
       
+      if (error) {
+        console.error('Feil ved opprettelse av prosjekt:', error);
+        setProjectError(error.message);
+        return;
+      }
+
       if (project) {
         console.log('Prosjekt opprettet:', project);
         setProjects(prev => [...prev, project]);
         setNewProjectName('');
         setNewProjectDescription('');
+        setNewProjectSize('');
+        setNewProjectLocation('');
+        setNewProjectMainContractor('');
+        setNewProjectTechnicalContractor('');
+        setNewProjectClient('');
+        setNewProjectAddress('');
         setShowNewProjectModal(false);
       }
     } catch (error: any) {
@@ -589,7 +609,7 @@ const Dashboard = () => {
               {projects.length > 0 ? (
                 <div>
                   <h2 className="text-xl font-semibold mb-4">Dine prosjekter</h2>
-                  <div className="space-y-4">
+                  <div className="grid gap-4">
                     {projects.map((project) => (
                       <div
                         key={project.id}
@@ -621,19 +641,13 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <FolderOpen className="h-12 w-12 mx-auto text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">Ingen prosjekter</h3>
-                  <p className="mt-1 text-sm text-gray-500">Kom i gang ved å opprette ditt første prosjekt.</p>
-                  <div className="mt-6">
-                    <button
-                      type="button"
-                      className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      onClick={() => setShowNewProjectModal(true)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nytt prosjekt
-                    </button>
-                  </div>
+                  <p className="text-gray-500">Ingen prosjekter funnet</p>
+                  <button
+                    onClick={() => setShowNewProjectModal(true)}
+                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  >
+                    Opprett ditt første prosjekt
+                  </button>
                 </div>
               )}
             </div>
@@ -860,17 +874,13 @@ const Dashboard = () => {
                                 ? 'bg-purple-100 text-purple-800' 
                                 : member.role === 'admin' 
                                 ? 'bg-blue-100 text-blue-800' 
-                                : member.role === 'member' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
+                                : 'bg-green-100 text-green-800'
                             }`}>
                               {member.role === 'owner' 
                                 ? 'Eier' 
                                 : member.role === 'admin' 
                                 ? 'Administrator' 
-                                : member.role === 'member' 
-                                ? 'Medlem' 
-                                : 'Observatør'}
+                                : 'Medlem'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -938,15 +948,11 @@ const Dashboard = () => {
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                               invitation.role === 'admin' 
                                 ? 'bg-blue-100 text-blue-800' 
-                                : invitation.role === 'member' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
+                                : 'bg-green-100 text-green-800'
                             }`}>
                               {invitation.role === 'admin' 
                                 ? 'Administrator' 
-                                : invitation.role === 'member' 
-                                ? 'Medlem' 
-                                : 'Observatør'}
+                                : 'Medlem'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -1015,12 +1021,11 @@ const Dashboard = () => {
                 <label className="block text-gray-700 mb-1">Rolle</label>
                 <select
                   value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value as 'admin' | 'member' | 'viewer')}
+                  onChange={(e) => setInviteRole(e.target.value as 'admin' | 'member')}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="admin">Administrator</option>
                   <option value="member">Medlem</option>
-                  <option value="viewer">Observatør</option>
                 </select>
               </div>
             </div>
@@ -1139,12 +1144,11 @@ const Dashboard = () => {
               </p>
               <select
                 value={editRole}
-                onChange={(e) => setEditRole(e.target.value as 'admin' | 'member' | 'viewer')}
+                onChange={(e) => setEditRole(e.target.value as 'admin' | 'member')}
                 className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="admin">Administrator</option>
                 <option value="member">Medlem</option>
-                <option value="viewer">Observatør</option>
               </select>
             </div>
             <div className="p-4 border-t flex justify-end">

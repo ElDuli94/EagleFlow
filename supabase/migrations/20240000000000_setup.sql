@@ -124,9 +124,11 @@ CREATE POLICY "Brukere kan lese prosjekter de er medlem av"
   ON projects
   FOR SELECT
   USING (
-    id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = projects.id 
+      AND user_id = auth.uid() 
+      AND invitation_status = 'accepted'
     )
   );
 
@@ -139,9 +141,12 @@ CREATE POLICY "Prosjekteiere og administratorer kan oppdatere prosjekter"
   ON projects
   FOR UPDATE
   USING (
-    id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND role IN ('owner', 'admin') AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = projects.id 
+      AND user_id = auth.uid() 
+      AND role IN ('owner', 'admin') 
+      AND invitation_status = 'accepted'
     )
   );
 
@@ -149,9 +154,12 @@ CREATE POLICY "Prosjekteiere kan slette prosjekter"
   ON projects
   FOR DELETE
   USING (
-    id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND role = 'owner' AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = projects.id 
+      AND user_id = auth.uid() 
+      AND role = 'owner' 
+      AND invitation_status = 'accepted'
     )
   );
 
@@ -166,9 +174,11 @@ CREATE POLICY "Brukere kan se medlemmer i prosjekter de er medlem av"
   ON project_members
   FOR SELECT
   USING (
-    project_id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = project_members.project_id 
+      AND user_id = auth.uid() 
+      AND invitation_status = 'accepted'
     )
   );
 
@@ -176,19 +186,25 @@ CREATE POLICY "Prosjekteiere og administratorer kan legge til medlemmer"
   ON project_members
   FOR INSERT
   WITH CHECK (
-    project_id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND role IN ('owner', 'admin') AND invitation_status = 'accepted'
-    )
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = NEW.project_id 
+      AND user_id = auth.uid() 
+      AND role IN ('owner', 'admin') 
+      AND invitation_status = 'accepted'
+    ) OR auth.uid() = NEW.user_id -- Tillat brukere å legge til seg selv
   );
 
 CREATE POLICY "Prosjekteiere og administratorer kan oppdatere medlemmer"
   ON project_members
   FOR UPDATE
   USING (
-    project_id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND role IN ('owner', 'admin') AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = project_members.project_id 
+      AND user_id = auth.uid() 
+      AND role IN ('owner', 'admin') 
+      AND invitation_status = 'accepted'
     )
   );
 
@@ -196,9 +212,12 @@ CREATE POLICY "Prosjekteiere og administratorer kan fjerne medlemmer"
   ON project_members
   FOR DELETE
   USING (
-    project_id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND role IN ('owner', 'admin') AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = project_members.project_id 
+      AND user_id = auth.uid() 
+      AND role IN ('owner', 'admin') 
+      AND invitation_status = 'accepted'
     ) AND user_id != auth.uid() -- Kan ikke fjerne seg selv
   );
 
@@ -215,9 +234,12 @@ CREATE POLICY "Brukere kan se invitasjoner til prosjekter de administrerer"
   ON project_invitations
   FOR SELECT
   USING (
-    project_id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND role IN ('owner', 'admin') AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = project_invitations.project_id 
+      AND user_id = auth.uid() 
+      AND role IN ('owner', 'admin') 
+      AND invitation_status = 'accepted'
     )
   );
 
@@ -232,9 +254,12 @@ CREATE POLICY "Prosjekteiere og administratorer kan opprette invitasjoner"
   ON project_invitations
   FOR INSERT
   WITH CHECK (
-    project_id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND role IN ('owner', 'admin') AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = NEW.project_id 
+      AND user_id = auth.uid() 
+      AND role IN ('owner', 'admin') 
+      AND invitation_status = 'accepted'
     ) AND invited_by = auth.uid()
   );
 
@@ -242,9 +267,12 @@ CREATE POLICY "Prosjekteiere og administratorer kan oppdatere invitasjoner"
   ON project_invitations
   FOR UPDATE
   USING (
-    project_id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND role IN ('owner', 'admin') AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = project_invitations.project_id 
+      AND user_id = auth.uid() 
+      AND role IN ('owner', 'admin') 
+      AND invitation_status = 'accepted'
     )
   );
 
@@ -259,9 +287,12 @@ CREATE POLICY "Prosjekteiere og administratorer kan slette invitasjoner"
   ON project_invitations
   FOR DELETE
   USING (
-    project_id IN (
-      SELECT project_id FROM project_members 
-      WHERE user_id = auth.uid() AND role IN ('owner', 'admin') AND invitation_status = 'accepted'
+    EXISTS (
+      SELECT 1 FROM project_members 
+      WHERE project_id = project_invitations.project_id 
+      AND user_id = auth.uid() 
+      AND role IN ('owner', 'admin') 
+      AND invitation_status = 'accepted'
     )
   );
 
@@ -275,8 +306,8 @@ CREATE OR REPLACE FUNCTION public.handle_new_project()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.project_members (project_id, user_id, role, invitation_status)
-  VALUES (new.id, new.created_by, 'owner', 'accepted');
-  RETURN new;
+  VALUES (NEW.id, NEW.created_by, 'owner', 'accepted');
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -291,7 +322,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Logg brukerdata for debugging
-  RAISE LOG 'Oppretter ny profil for bruker: %, metadata: %', new.id, new.raw_user_meta_data;
+  RAISE LOG 'Oppretter ny profil for bruker: %, metadata: %', NEW.id, NEW.raw_user_meta_data;
   
   INSERT INTO public.profiles (
     id, 
@@ -304,20 +335,20 @@ BEGIN
     gender
   )
   VALUES (
-    new.id, 
-    COALESCE(new.raw_user_meta_data->>'full_name', ''),
-    COALESCE(NULLIF(new.raw_user_meta_data->>'birth_date', ''), '2000-01-01'),
-    COALESCE(new.raw_user_meta_data->>'company', ''),
-    COALESCE(new.raw_user_meta_data->>'job_title', ''),
-    COALESCE(new.email, new.raw_user_meta_data->>'email', ''),
-    COALESCE(new.raw_user_meta_data->>'city', ''),
-    COALESCE(new.raw_user_meta_data->>'gender', 'male')
+    NEW.id, 
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    COALESCE(NULLIF(NEW.raw_user_meta_data->>'birth_date', ''), '2000-01-01'),
+    COALESCE(NEW.raw_user_meta_data->>'company', ''),
+    COALESCE(NEW.raw_user_meta_data->>'job_title', ''),
+    COALESCE(NEW.email, NEW.raw_user_meta_data->>'email', ''),
+    COALESCE(NEW.raw_user_meta_data->>'city', ''),
+    COALESCE(NEW.raw_user_meta_data->>'gender', 'male')
   );
-  RETURN new;
+  RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
   -- Logg feil
   RAISE LOG 'Feil ved oppretting av profil: %', SQLERRM;
-  RETURN new;
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
