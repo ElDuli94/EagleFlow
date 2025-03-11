@@ -3,9 +3,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '../contexts/AuthContext'
-import { UserProfile, uploadAvatar, supabase } from '../lib/supabase'
+import { uploadAvatar, supabase } from '../lib/supabase'
 import { motion } from 'framer-motion'
-import { User, Camera, Building2, Briefcase, Mail, MapPin, Calendar, X, Save } from 'lucide-react'
+import { User, Camera, Building2, Briefcase, MapPin, Calendar, X, Save } from 'lucide-react'
 import { maleAvatar, femaleAvatar } from '../assets/avatars'
 
 // Skjema for profilredigering

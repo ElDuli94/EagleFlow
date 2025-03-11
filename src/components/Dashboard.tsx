@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { 
   Menu, X, ChevronDown, ChevronUp, Settings, 
-  Droplets, Zap, Wind, Gauge, Package, Plus, Loader, Users, Home, LogOut,
+  Droplets, Zap, Wind, Gauge, Package, Plus, Loader, Users, LogOut,
   User, Edit, ExternalLink, Calendar, FolderOpen
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -11,8 +11,7 @@ import {
   getUserProjects, Project, createProject, 
   ProjectMember, ProjectInvitation,
   getProjectMembers, inviteUserToProject, removeProjectMember, updateProjectMemberRole,
-  getProjectInvitations, cancelInvitation,
-  supabase
+  getProjectInvitations, cancelInvitation
 } from '../lib/supabase'
 import ProfileEdit from './ProfileEdit'
 
@@ -59,14 +58,11 @@ const Dashboard = () => {
   const [cancelingInvitation, setCancelingInvitation] = useState(false)
 
   const [activePage, setActivePage] = useState('projects')
-  const [isLoading, setIsLoading] = useState(true)
   
   // Profilredigering
   const [showProfileEdit, setShowProfileEdit] = useState(false)
-  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false)
 
   // State for prosjekter
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [projectError, setProjectError] = useState<string | null>(null)
 
   // Logg profil for debugging

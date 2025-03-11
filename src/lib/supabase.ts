@@ -16,8 +16,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Opprett en Supabase-klient med service_role for admin-operasjoner
 // Dette bør kun brukes på server-side, men for demo-formål bruker vi det her
-const serviceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || ''
-const supabaseAdmin = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : null
+// const serviceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || ''
+// const supabaseAdmin = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : null
 
 // Brukertype basert på Supabase Auth og profiltabell
 export type UserProfile = {

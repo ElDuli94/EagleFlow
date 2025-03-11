@@ -27,7 +27,7 @@ const Login = () => {
     try {
       setIsLoading(true)
       setError(null)
-      await signIn(data.email, data.password, rememberMe)
+      await signIn(data.email, data.password)
       // Autentisering vellykket - AuthContext vil håndtere omdirigering
     } catch (error) {
       console.error('Innloggingsfeil:', error)
