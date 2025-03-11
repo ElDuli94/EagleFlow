@@ -36,7 +36,7 @@ function AppContent() {
         const projectId = hash.replace('project/', '');
         setCurrentPage('project');
         // Lagre prosjekt-ID i state for å bruke den i ProjectDashboard
-        setSelectedProjectId(projectId);
+        setSelectedProjectId(projectId || null);
       } else {
         setCurrentPage('home');
       }
