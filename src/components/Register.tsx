@@ -41,36 +41,67 @@ const Register = () => {
   }
 
   const onSubmit = async (data: RegisterFormValues) => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      setIsLoading(true)
-      setError(null)
+      console.log('Registrerer bruker med data:', { ...data, password: '[SKJULT]' });
       
+      // Sikre at fødselsdato er i riktig format (YYYY-MM-DD)
+      let formattedBirthDate = data.birthDate;
+      try {
+        const date = new Date(data.birthDate);
+        if (!isNaN(date.getTime())) {
+          formattedBirthDate = date.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.warn('Kunne ikke formatere fødselsdato:', e);
+      }
+      
+      // Registrer bruker
       const authData = await signUp(data.email, data.password, {
         full_name: data.fullName,
-        birth_date: data.birthDate,
+        birth_date: formattedBirthDate,
         company: data.company,
         job_title: data.jobTitle,
         email: data.email,
         city: data.city,
         gender: data.gender
-      })
+      });
       
-      if (avatarFile && authData.user) {
+      if (!authData.user) {
+        console.error('Ingen brukerdata returnert etter registrering');
+        throw new Error('Registrering mislyktes. Vennligst prøv igjen.');
+      }
+      
+      console.log('Bruker registrert:', authData.user.id);
+      
+      // Last opp avatar hvis valgt
+      if (avatarFile && authData.user.id) {
         try {
-          await uploadAvatar(authData.user.id, avatarFile)
-        } catch (error) {
-          console.error('Feil ved opplasting av avatar:', error)
+          console.log('Laster opp avatar for ny bruker');
+          await uploadAvatar(authData.user.id, avatarFile);
+          console.log('Avatar lastet opp for ny bruker');
+        } catch (avatarError) {
+          console.error('Feil ved opplasting av avatar:', avatarError);
+          // Fortsett selv om avatar-opplastingen feiler
         }
       }
       
-      setSuccess(true)
-    } catch (error: any) {
-      console.error('Registreringsfeil:', error)
-      setError(error.message || 'Det oppstod en feil under registrering. Vennligst prøv igjen.')
+      // Vis suksessmelding
+      setSuccess(true);
+      
+      // Omdiriger til login-siden etter 2 sekunder
+      setTimeout(() => {
+        window.location.hash = 'login';
+      }, 2000);
+    } catch (err: any) {
+      console.error('Feil ved registrering:', err);
+      setError(err.message || 'Det oppstod en feil under registrering. Vennligst prøv igjen.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (user && !success) {
     return null

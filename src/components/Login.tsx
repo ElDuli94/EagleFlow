@@ -10,6 +10,7 @@ import { Mail, Lock } from 'lucide-react'
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [rememberMe, setRememberMe] = useState(false)
   const { user } = useAuth()
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema)
@@ -26,7 +27,7 @@ const Login = () => {
     try {
       setIsLoading(true)
       setError(null)
-      await signIn(data.email, data.password)
+      await signIn(data.email, data.password, rememberMe)
       // Autentisering vellykket - AuthContext vil håndtere omdirigering
     } catch (error) {
       console.error('Innloggingsfeil:', error)
@@ -111,12 +112,13 @@ const Login = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mt-4 mb-6">
               <div className="flex items-center">
                 <input
                   id="remember-me"
-                  name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded transition-colors"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">

@@ -73,104 +73,109 @@ function AppContent() {
     )
   }
 
+  // Sjekk om vi skal vise navigasjon og footer
+  const isDashboard = currentPage === 'dashboard'
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      {/* Navigation */}
-      <nav className="container mx-auto px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <a href="#" className="text-xl sm:text-2xl font-bold text-primary">
-              Eagle<span className="text-secondary">Flow</span>
-            </a>
+      {/* Navigation - skjul på dashboard */}
+      {!isDashboard && (
+        <nav className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <a href="#" className="text-xl sm:text-2xl font-bold text-primary">
+                Eagle<span className="text-secondary">Flow</span>
+              </a>
+            </div>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              {!user && (
+                <>
+                  <a href="#features" className="text-gray-600 hover:text-primary transition-colors">Funksjoner</a>
+                  <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">Priser</a>
+                </>
+              )}
+              <a href="#contact" className="text-gray-600 hover:text-primary transition-colors">Kontakt</a>
+              
+              {user ? (
+                <>
+                  <a 
+                    href="#dashboard" 
+                    onClick={(e) => { e.preventDefault(); window.location.hash = 'dashboard'; }} 
+                    className="text-gray-600 hover:text-primary transition-colors"
+                  >
+                    Dashboard
+                  </a>
+                  <button 
+                    onClick={handleSignOut}
+                    className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors"
+                  >
+                    Logg ut
+                  </button>
+                </>
+              ) : (
+                <>
+                  <a href="#login" onClick={(e) => { e.preventDefault(); window.location.hash = 'login'; }} className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">Logg inn</a>
+                  <a href="#register" onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }} className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">Registrer deg</a>
+                </>
+              )}
+            </div>
+            
+            {/* Mobile Navigation Toggle */}
+            <div className="md:hidden">
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-gray-600 focus:outline-none"
+              >
+                <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                  {isMenuOpen ? (
+                    <path fillRule="evenodd" clipRule="evenodd" d="M18.278 16.864a1 1 0 0 1-1.414 1.414l-4.829-4.828-4.828 4.828a1 1 0 0 1-1.414-1.414l4.828-4.829-4.828-4.828a1 1 0 0 1 1.414-1.414l4.829 4.828 4.828-4.828a1 1 0 1 1 1.414 1.414l-4.828 4.829 4.828 4.828z" />
+                  ) : (
+                    <path fillRule="evenodd" d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2z" />
+                  )}
+                </svg>
+              </button>
+            </div>
           </div>
           
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {!user && (
-              <>
-                <a href="#features" className="text-gray-600 hover:text-primary transition-colors">Funksjoner</a>
-                <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">Priser</a>
-              </>
-            )}
-            <a href="#contact" className="text-gray-600 hover:text-primary transition-colors">Kontakt</a>
-            
-            {user ? (
-              <>
-                <a 
-                  href="#dashboard" 
-                  onClick={(e) => { e.preventDefault(); window.location.hash = 'dashboard'; }} 
-                  className="text-gray-600 hover:text-primary transition-colors"
-                >
-                  Dashboard
-                </a>
-                <button 
-                  onClick={handleSignOut}
-                  className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors"
-                >
-                  Logg ut
-                </button>
-              </>
-            ) : (
-              <>
-                <a href="#login" onClick={(e) => { e.preventDefault(); window.location.hash = 'login'; }} className="px-4 py-2 text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">Logg inn</a>
-                <a href="#register" onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; }} className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">Registrer deg</a>
-              </>
-            )}
-          </div>
-          
-          {/* Mobile Navigation Toggle */}
-          <div className="md:hidden">
-            <button 
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-600 focus:outline-none"
-            >
-              <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24">
-                {isMenuOpen ? (
-                  <path fillRule="evenodd" clipRule="evenodd" d="M18.278 16.864a1 1 0 0 1-1.414 1.414l-4.829-4.828-4.828 4.828a1 1 0 0 1-1.414-1.414l4.828-4.829-4.828-4.828a1 1 0 0 1 1.414-1.414l4.829 4.828 4.828-4.828a1 1 0 1 1 1.414 1.414l-4.828 4.829 4.828 4.828z" />
-                ) : (
-                  <path fillRule="evenodd" d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2z" />
-                )}
-              </svg>
-            </button>
-          </div>
-        </div>
-        
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden mt-4 bg-white rounded-lg shadow-lg p-4">
-            {!user && (
-              <>
-                <a href="#features" className="block py-2 text-gray-600 hover:text-primary">Funksjoner</a>
-                <a href="#pricing" onClick={(e) => { e.preventDefault(); window.location.hash = 'pricing'; setIsMenuOpen(false); }} className="block py-2 text-gray-600 hover:text-primary">Priser</a>
-              </>
-            )}
-            <a href="#contact" onClick={(e) => { e.preventDefault(); window.location.hash = 'contact'; setIsMenuOpen(false); }} className="block py-2 text-gray-600 hover:text-primary">Kontakt</a>
-            
-            {user ? (
-              <>
-                <a 
-                  href="#dashboard" 
-                  onClick={(e) => { e.preventDefault(); window.location.hash = 'dashboard'; setIsMenuOpen(false); }} 
-                  className="block py-2 text-gray-600 hover:text-primary"
-                >
-                  Dashboard
-                </a>
-                <button 
-                  onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
-                  className="block w-full text-left py-2 text-primary"
-                >
-                  Logg ut
-                </button>
-              </>
-            ) : (
-              <>
-                <a href="#login" onClick={(e) => { e.preventDefault(); window.location.hash = 'login'; setIsMenuOpen(false); }} className="block py-2 text-primary">Logg inn</a>
-                <a href="#register" onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; setIsMenuOpen(false); }} className="block py-2 mt-2 bg-primary text-white rounded-md px-4">Registrer deg</a>
-              </>
-            )}
-          </div>
-        )}
-      </nav>
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="md:hidden mt-4 bg-white rounded-lg shadow-lg p-4">
+              {!user && (
+                <>
+                  <a href="#features" className="block py-2 text-gray-600 hover:text-primary">Funksjoner</a>
+                  <a href="#pricing" onClick={(e) => { e.preventDefault(); window.location.hash = 'pricing'; setIsMenuOpen(false); }} className="block py-2 text-gray-600 hover:text-primary">Priser</a>
+                </>
+              )}
+              <a href="#contact" onClick={(e) => { e.preventDefault(); window.location.hash = 'contact'; setIsMenuOpen(false); }} className="block py-2 text-gray-600 hover:text-primary">Kontakt</a>
+              
+              {user ? (
+                <>
+                  <a 
+                    href="#dashboard" 
+                    onClick={(e) => { e.preventDefault(); window.location.hash = 'dashboard'; setIsMenuOpen(false); }} 
+                    className="block py-2 text-gray-600 hover:text-primary"
+                  >
+                    Dashboard
+                  </a>
+                  <button 
+                    onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
+                    className="block w-full text-left py-2 text-primary"
+                  >
+                    Logg ut
+                  </button>
+                </>
+              ) : (
+                <>
+                  <a href="#login" onClick={(e) => { e.preventDefault(); window.location.hash = 'login'; setIsMenuOpen(false); }} className="block py-2 text-primary">Logg inn</a>
+                  <a href="#register" onClick={(e) => { e.preventDefault(); window.location.hash = 'register'; setIsMenuOpen(false); }} className="block py-2 mt-2 bg-primary text-white rounded-md px-4">Registrer deg</a>
+                </>
+              )}
+            </div>
+          )}
+        </nav>
+      )}
 
       {/* Main Content */}
       {currentPage === 'login' ? (
@@ -483,26 +488,6 @@ function AppContent() {
           </section>
         </>
       )}
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 sm:py-12">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex justify-center mb-6 sm:mb-8">
-            <span className="text-xl sm:text-2xl font-bold text-white">
-              Eagle<span className="text-secondary">Flow</span>
-            </span>
-          </div>
-          <div className="border-t border-gray-800 mt-6 sm:mt-8 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-            <p className="text-sm text-gray-400 text-center sm:text-left">© 2023 EagleFlow. Alle rettigheter reservert. Ingen Excel-ark ble skadet under utviklingen av denne nettsiden.</p>
-            <a href="#linkedin" className="text-gray-400 hover:text-white transition-colors">
-              <span className="sr-only">LinkedIn</span>
-              <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

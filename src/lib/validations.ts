@@ -26,7 +26,8 @@ export type RegisterFormValues = z.infer<typeof registerSchema>
 // Innloggingsskjema validering
 export const loginSchema = z.object({
   email: z.string().email('Ugyldig e-postadresse'),
-  password: z.string().min(1, 'Passord er påkrevd')
+  password: z.string().min(1, 'Passord er påkrevd'),
+  rememberMe: z.boolean().optional()
 })
 
 export type LoginFormValues = z.infer<typeof loginSchema> 
