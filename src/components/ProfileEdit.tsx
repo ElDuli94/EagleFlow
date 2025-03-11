@@ -35,7 +35,7 @@ const ProfileEdit = ({ onClose }: ProfileEditProps) => {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(profile?.avatar_url || null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProfileEditFormValues>({
     resolver: zodResolver(profileEditSchema),
@@ -60,7 +60,7 @@ const ProfileEdit = ({ onClose }: ProfileEditProps) => {
         city: profile.city || '',
         gender: profile.gender || 'male'
       })
-      setAvatarPreview(profile.avatar_url)
+      setAvatarPreview(profile.avatar_url || null)
     }
   }, [profile, reset])
 
