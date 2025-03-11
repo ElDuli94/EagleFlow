@@ -243,14 +243,7 @@ export async function getUserProjects(): Promise<Project[]> {
     console.log('Henter prosjekter for bruker:', session.user.id);
     const { data: projects, error } = await supabase
       .from('projects')
-      .select(`
-        *,
-        project_members!inner (
-          user_id,
-          role
-        )
-      `)
-      .eq('project_members.user_id', session.user.id)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) {
