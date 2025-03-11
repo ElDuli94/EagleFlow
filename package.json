@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build && touch dist/.nojekyll && cp public/404.html dist/",
+    "predeploy": "npm run build && touch dist/.nojekyll && cp public/404.html dist/ && cp public/vite.svg dist/ && cp public/CNAME dist/",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {

@@ -9,18 +9,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     base: '/eagleflow/',
-    build: {
-      outDir: 'dist',
-      assetsDir: 'assets',
-      emptyOutDir: true,
-      rollupOptions: {
-        output: {
-          entryFileNames: 'assets/[name].[hash].js',
-          chunkFileNames: 'assets/[name].[hash].js',
-          assetFileNames: 'assets/[name].[hash].[ext]'
-        }
-      }
-    },
     define: {
       // Gjør miljøvariabler tilgjengelige globalt
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
