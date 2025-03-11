@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { 
   Menu, X, ChevronDown, ChevronUp, Settings, 
   Droplets, Zap, Wind, Gauge, Package, Plus, Loader, LogOut,
-  User, Edit, Trash2, Upload, Image
+  User, Edit, Trash2, Upload, Image, MapPin, FolderPlus
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { maleAvatar, femaleAvatar } from '../assets/avatars'
@@ -848,8 +848,70 @@ const Dashboard = () => {
                 )}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500">Velg et prosjekt for å se detaljer</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {projects.map((project) => (
+                  <div key={project.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+                    <div 
+                      className="h-40 bg-gray-200 rounded-t-lg relative"
+                      style={{
+                        backgroundImage: `url(${project.image_url || '/default-project.jpg'})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }}
+                    />
+                    <div className="p-4">
+                      <div className="space-y-2">
+                        <div>
+                          <span className="text-sm text-gray-500">Prosjektnavn:</span>
+                          <h3 className="text-lg font-semibold">{project.name}</h3>
+                        </div>
+                        
+                        {project.client && (
+                          <div>
+                            <span className="text-sm text-gray-500">Kunde:</span>
+                            <p className="text-sm">{project.client}</p>
+                          </div>
+                        )}
+
+                        {project.description && (
+                          <div>
+                            <span className="text-sm text-gray-500">Beskrivelse:</span>
+                            <p className="text-sm line-clamp-2">{project.description}</p>
+                          </div>
+                        )}
+
+                        <div className="pt-4 flex items-center justify-between">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <MapPin size={14} className="mr-1" />
+                            <span>{project.location || 'Ingen lokasjon'}</span>
+                          </div>
+                          <button
+                            onClick={() => setSelectedProject(project)}
+                            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                          >
+                            Åpne prosjekt
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {projects.length === 0 && (
+                  <div className="col-span-full flex flex-col items-center justify-center py-12 px-4">
+                    <FolderPlus size={48} className="text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Ingen prosjekter ennå</h3>
+                    <p className="text-gray-500 text-center mb-4">
+                      Du har ikke opprettet noen prosjekter ennå. Kom i gang ved å opprette ditt første prosjekt.
+                    </p>
+                    <button
+                      onClick={() => setShowNewProjectModal(true)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+                    >
+                      <Plus size={20} className="mr-2" />
+                      Opprett nytt prosjekt
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
